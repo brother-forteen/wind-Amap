@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1,user-scalable=no">
+    <title>Wind Animation</title>
+    <script src="https://code.jquery.com/jquery-2.2.4.js" integrity="sha256-iT6Q9iMJYuQiMWNd9lDyBUStIq/8PuOW33aOqmvFpqI=" crossorigin="anonymous"></script>
+    <!-- 高德地图 -->
+    <script type="text/javascript" src="https://webapi.amap.com/maps?v=1.4.14&key=2dd8db00f332d02eda8fd16526838c44"></script>
+
+    <style>
+        html,body {
+            width:100%;
+            height:100%;
+            margin: 0;
+            padding: 0px 0 0 0;
+        }
+
+        #mapCanvas {
+            padding:0;
+        }
+
+        #credit {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        #credit a {
+            color: #08c;
+        }
+
+    </style>
+
+    <script>
+        var dojoConfig = {
+            paths: {
+                plugins: location.pathname.replace(/\/[^/]+$/, "") + "/plugins"
+            }
+        };
+    </script>
+
+    <script src="./windy-gaode.js"></script>
+
+    <script>
+        var canvasSupport;
+        var canvas;
+        var map;
+        var CanvasLayer;
+
+        window.onload = function(){
+            // does the browser support canvas?
+            function supports_canvas() {
+                return !!document.createElement("canvas").getContext;
+            }
+
+
+            map = new AMap.Map('mapCanvas', {
+                center: [116.335183, 39.941735],
+                zoom: 6,
+                resizeEnable: true,
+            });
+            map.setMapStyle("amap://styles/graffiti");
+
+            map.on('complete', () => {mapLoaded();});
+            map.on("click", redraw);
+            map.on("resize", redraw);
+            map.on("zoomend", redraw);
+            map.on("moveend", redraw);
+
+            canvasSupport = supports_canvas();
+
+            function mapLoaded() {
+                // Add raster layer
+                if ( canvasSupport ) {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = map.getSize().width;
+                    canvas.height = map.getSize().height;
+
+                    var context = canvas.getContext('2d');
+                    context.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                    context.fillRect(0, 0, map.getSize().width, map.getSize().height);
+
+                    let mapBounds = map.getBounds();
+                    CanvasLayer = new AMap.CanvasLayer({
+                        canvas: canvas,
+                        bounds: new AMap.Bounds(
+                            [mapBounds.southwest.lng, mapBounds.southwest.lat],
+                            [mapBounds.northeast.lng, mapBounds.northeast.lat]
+                        ),
+                        zooms: [3, 18],
+                    });
+
+                    CanvasLayer.setMap(map);
+
+                    $.ajax({
+                        url: "./current-wind-surface-level-gfs-1.0.json",
+                        success: function( response ) {
+                            windy = new Windy({ canvas: CanvasLayer.getElement(), data: response });
+                            redraw();
+                        },
+                        error: function (err) {
+                            console.log(err);
+                        }
+                    });
+
+                } else {
+                    document.getElementById("mapCanvas").innerHTML = "This browser doesn't support canvas. Visit <a target='_blank' href='http://www.caniuse.com/#search=canvas'>caniuse.com</a> for supported browsers";
+                }
+            }
+
+            function redraw(){
+                windy.stop();
+
+                var bounds = map.getBounds();
+
+                setTimeout(function(){
+                    windy.start(
+                         [[0, 0], [map.getSize().width, map.getSize().height]],
+                         map.getSize().width,
+                         map.getSize().height,
+                         [[bounds.southwest.lng, bounds.southwest.lat], [bounds.northeast.lng, bounds.northeast.lat]]
+                    );
+                }, 500);
+            }
+        };
+    </script>
+</head>
+
+<body class="">
+<div id="mapCanvas" style="height:100%;"></div>
+</body>
+
+</html>
