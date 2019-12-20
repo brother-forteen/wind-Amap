@@ -11,13 +11,13 @@
 */
 
 var Windy = function( params ){
-    var VELOCITY_SCALE = 0.01;             // scale for wind velocity (completely arbitrary--this value looks nice)  风速刻度（完全任意-此值看起来不错）
+    var VELOCITY_SCALE = 0.005;             // scale for wind velocity (completely arbitrary--this value looks nice)  风速刻度（完全任意-此值看起来不错）
     var INTENSITY_SCALE_STEP = 10;            // step size of particle intensity color scale 粒子强度色阶的步长
     var MAX_WIND_INTENSITY = 50;              // wind velocity at which particle intensity is maximum (m/s) 粒子强度最大时的风速（m / s）
-    var MAX_PARTICLE_AGE = 10;                // max number of frames a particle is drawn before regeneration  再生之前绘制粒子的最大帧数
+    var MAX_PARTICLE_AGE = 200;                // max number of frames a particle is drawn before regeneration  再生之前绘制粒子的最大帧数
     var PARTICLE_LINE_WIDTH = 2;              // line width of a drawn particle  绘制粒子的线宽
-    var PARTICLE_MULTIPLIER = 1/5000;              // particle count scalar (completely arbitrary--this values looks nice) 粒子计数标量（完全任意-此值看起来不错）
-    var PARTICLE_REDUCTION = 1;            // reduce particle count to this much of normal for mobile devices  将颗粒数减少到移动设备的正常水平
+    var PARTICLE_MULTIPLIER = 1 / 500;              // particle count scalar (completely arbitrary--this values looks nice) 粒子计数标量（完全任意-此值看起来不错）
+    var PARTICLE_REDUCTION = 0.75;            // reduce particle count to this much of normal for mobile devices  如果是移动设备的话，将颗粒数减少到移动设备的正常水平
     var FRAME_RATE = 500;                      // desired milliseconds per frame  每帧所需的毫秒数
     var BOUNDARY = 0.45;
 
@@ -97,9 +97,10 @@ var Windy = function( params ){
             grid[j] = row;
         }
 
+        // 插值
         function interpolate(λ, φ) {
-            var i = floorMod(λ - λ0, 360) / Δλ;  // calculate longitude index in wrapped range [0, 360)
-            var j = (φ0 - φ) / Δφ;                 // calculate latitude index in direction +90 to -90
+            var i = floorMod(λ - λ0, 360) / Δλ;  // calculate longitude index in wrapped range [0, 360)  计算包装范围[0，360）中的经度索引
+            var j = (φ0 - φ) / Δφ;                     // calculate latitude index in direction +90 to -90      计算+90到-90方向的纬度指数
 
             var fi = Math.floor(i), ci = fi + 1;
             var fj = Math.floor(j), cj = fj + 1;
@@ -132,7 +133,7 @@ var Windy = function( params ){
      */
     var isValue = function(x) {
         return x !== null && x !== undefined;
-    }
+    };
 
     /**
      * @returns {Number} returns remainder of floored division, i.e., floor(a / n). Useful for consistent modulo
@@ -140,21 +141,21 @@ var Windy = function( params ){
      */
     var floorMod = function(a, n) {
         return a - n * Math.floor(a / n);
-    }
+    };
 
     /**
      * @returns {Number} the value x clamped to the range [low, high].
      */
     var clamp = function(x, range) {
         return Math.max(range[0], Math.min(x, range[1]));
-    }
+    };
 
     /**
      * @returns {Boolean} true if agent is probably a mobile device. Don't really care if this is accurate.
      */
     var isMobile = function() {
         return (/android|blackberry|iemobile|ipad|iphone|ipod|opera mini|webos/i).test(navigator.userAgent);
-    }
+    };
 
     /**
      * Calculate distortion of the wind vector caused by the shape of the projection at point (x, y). The wind
@@ -191,7 +192,6 @@ var Windy = function( params ){
             (pφ[1] - y) / hφ
         ];
     };
-
 
 
     var createField = function(columns, bounds, callback) {
@@ -277,7 +277,6 @@ var Windy = function( params ){
 
 
     var interpolateField = function( grid, bounds, extent, callback ) {
-
         var projection = {};
         var velocityScale = VELOCITY_SCALE;
 
@@ -370,16 +369,19 @@ var Windy = function( params ){
         var colorStyles = windIntensityColorScale(INTENSITY_SCALE_STEP, MAX_WIND_INTENSITY);
         var buckets = colorStyles.map(function() { return []; });
 
+        // 粒子计数, 面积 / 个数,每个粒子占多大的面积
         var particleCount = Math.round(bounds.width * bounds.height * PARTICLE_MULTIPLIER);
         if (isMobile()) {
             particleCount *= PARTICLE_REDUCTION;
         }
 
-        var fadeFillStyle = "rgba(0, 0, 0, 0.97)";
+        var fadeFillStyle = "rgba(0, 0, 0, 0.75)";
 
         var particles = [];
         for (var i = 0; i < particleCount; i++) {
-            particles.push(field.randomize({age: Math.floor(Math.random() * MAX_PARTICLE_AGE) + 0}));
+            particles.push(
+                field.randomize({age: Math.floor(Math.random() * MAX_PARTICLE_AGE) + 0})
+            );
         }
 
         function evolve() {
@@ -457,7 +459,6 @@ var Windy = function( params ){
 
     // 风场开始
     var start = function( bounds, width, height, extent ){
-
         var mapBounds = {
             south: deg2rad(extent[0][1]),
             north: deg2rad(extent[1][1]),

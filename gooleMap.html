@@ -62,7 +62,7 @@
                 zoom: 6,
                 resizeEnable: true,
             });
-            map.setMapStyle("amap://styles/graffiti");
+            map.setMapStyle("amap://styles/dark");
 
             map.on('complete', () => {mapLoaded();});
             map.on("click", redraw);
@@ -113,6 +113,8 @@
 
             function redraw(){
                 windy.stop();
+
+                CanvasLayer.reFresh();
 
                 var bounds = map.getBounds();
 
