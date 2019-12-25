@@ -13,34 +13,14 @@
             width:100%;
             height:100%;
             margin: 0;
-            padding: 0px 0 0 0;
+            padding: 0 0 0 0;
         }
 
         #mapCanvas {
             padding:0;
         }
 
-        #credit {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            color: #fff;
-            font-size: 14px;
-        }
-
-        #credit a {
-            color: #08c;
-        }
-
     </style>
-
-    <script>
-        var dojoConfig = {
-            paths: {
-                plugins: location.pathname.replace(/\/[^/]+$/, "") + "/plugins"
-            }
-        };
-    </script>
 
     <script src="./windy-gaode.js"></script>
 
@@ -59,31 +39,35 @@
 
             map = new AMap.Map('mapCanvas', {
                 center: [116.335183, 39.941735],
-                zoom: 6,
+                zoom: 13,
                 resizeEnable: true,
+                // pitch: 65, // 地图俯仰角度，有效范围 0 度- 83 度
+                // viewMode: '3D' // 地图模式
             });
             map.setMapStyle("amap://styles/dark");
 
-            map.on('complete', () => {mapLoaded();});
-            map.on("click", redraw);
-            map.on("resize", redraw);
-            map.on("zoomend", redraw);
-            map.on("moveend", redraw);
+            map.on('complete', () => {
+                // let layer = new AMap.TileLayer.Satellite();
+                // this.map.add(layer);
+
+                mapLoaded();
+            });
+            map.on("resize", mapLoaded);
+            map.on("zoomend", mapLoaded);
+            map.on("moveend", mapLoaded);
 
             canvasSupport = supports_canvas();
 
             function mapLoaded() {
                 // Add raster layer
+                CanvasLayer && map.remove(CanvasLayer);
                 if ( canvasSupport ) {
                     var canvas = document.createElement('canvas');
                     canvas.width = map.getSize().width;
                     canvas.height = map.getSize().height;
 
-                    var context = canvas.getContext('2d');
-                    context.fillStyle = 'rgba(0, 0, 0, 0.4)';
-                    context.fillRect(0, 0, map.getSize().width, map.getSize().height);
-
                     let mapBounds = map.getBounds();
+
                     CanvasLayer = new AMap.CanvasLayer({
                         canvas: canvas,
                         bounds: new AMap.Bounds(
@@ -98,7 +82,10 @@
                     $.ajax({
                         url: "./current-wind-surface-level-gfs-1.0.json",
                         success: function( response ) {
-                            windy = new Windy({ canvas: CanvasLayer.getElement(), data: response });
+                            windy = new Windy({
+                                canvas: CanvasLayer.getElement(),
+                                data: response
+                            });
                             redraw();
                         },
                         error: function (err) {
@@ -113,11 +100,8 @@
 
             function redraw(){
                 windy.stop();
-
                 CanvasLayer.reFresh();
-
                 var bounds = map.getBounds();
-
                 setTimeout(function(){
                     windy.start(
                          [[0, 0], [map.getSize().width, map.getSize().height]],
@@ -125,7 +109,7 @@
                          map.getSize().height,
                          [[bounds.southwest.lng, bounds.southwest.lat], [bounds.northeast.lng, bounds.northeast.lat]]
                     );
-                }, 500);
+                }, 0);
             }
         };
     </script>

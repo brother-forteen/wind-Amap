@@ -11,15 +11,14 @@
 */
 
 var Windy = function( params ){
-    var VELOCITY_SCALE = 0.005;             // scale for wind velocity (completely arbitrary--this value looks nice)  风速刻度（完全任意-此值看起来不错）
-    var INTENSITY_SCALE_STEP = 10;            // step size of particle intensity color scale 粒子强度色阶的步长
+    var VELOCITY_SCALE = 0.003;             // scale for wind velocity (completely arbitrary--this value looks nice)  风速刻度（完全任意-此值看起来不错）
+    var INTENSITY_SCALE_STEP = 7;            // step size of particle intensity color scale 粒子强度色阶的步长 最大风速/颜色数组的长度
     var MAX_WIND_INTENSITY = 50;              // wind velocity at which particle intensity is maximum (m/s) 粒子强度最大时的风速（m / s）
-    var MAX_PARTICLE_AGE = 200;                // max number of frames a particle is drawn before regeneration  再生之前绘制粒子的最大帧数
+    var MAX_PARTICLE_AGE = 128;                // max number of frames a particle is drawn before regeneration  再生之前绘制粒子的最大帧数
     var PARTICLE_LINE_WIDTH = 2;              // line width of a drawn particle  绘制粒子的线宽
-    var PARTICLE_MULTIPLIER = 1 / 500;              // particle count scalar (completely arbitrary--this values looks nice) 粒子计数标量（完全任意-此值看起来不错）
+    var PARTICLE_MULTIPLIER = 1 / 512;              // particle count scalar (completely arbitrary--this values looks nice) 粒子计数标量（完全任意-此值看起来不错）
     var PARTICLE_REDUCTION = 0.75;            // reduce particle count to this much of normal for mobile devices  如果是移动设备的话，将颗粒数减少到移动设备的正常水平
     var FRAME_RATE = 500;                      // desired milliseconds per frame  每帧所需的毫秒数
-    var BOUNDARY = 0.45;
 
     var NULL_WIND_VECTOR = [NaN, NaN, null];  // singleton for no wind in the form: [u, v, magnitude]
     var TRANSPARENT_BLACK = [255, 0, 0, 0];
@@ -318,48 +317,23 @@ var Windy = function( params ){
 
 
     var animate = function(bounds, field) {
-
-        function asColorStyle(r, g, b, a) {
-            return "rgba(" + 243 + ", " + 243 + ", " + 238 + ", " + a + ")";
-        }
-
         function hexToR(h) {return parseInt((cutHex(h)).substring(0,2),16)}
         function hexToG(h) {return parseInt((cutHex(h)).substring(2,4),16)}
         function hexToB(h) {return parseInt((cutHex(h)).substring(4,6),16)}
-        function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7):h}
+        function cutHex(h) {return (h.charAt(0)=="#") ? h.substring(1,7) : h}
 
         function windIntensityColorScale(step, maxWind) {
 
             var result = [
-                /* blue to red
-                "rgba(" + hexToR('#178be7') + ", " + hexToG('#178be7') + ", " + hexToB('#178be7') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#8888bd') + ", " + hexToG('#8888bd') + ", " + hexToB('#8888bd') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#b28499') + ", " + hexToG('#b28499') + ", " + hexToB('#b28499') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#cc7e78') + ", " + hexToG('#cc7e78') + ", " + hexToB('#cc7e78') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#de765b') + ", " + hexToG('#de765b') + ", " + hexToB('#de765b') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#ec6c42') + ", " + hexToG('#ec6c42') + ", " + hexToB('#ec6c42') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#f55f2c') + ", " + hexToG('#f55f2c') + ", " + hexToB('#f55f2c') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#fb4f17') + ", " + hexToG('#fb4f17') + ", " + hexToB('#fb4f17') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#fe3705') + ", " + hexToG('#fe3705') + ", " + hexToB('#fe3705') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#ff0000') + ", " + hexToG('#ff0000') + ", " + hexToB('#ff0000') + ", " + 0.5 + ")"
-                */
-                "rgba(" + hexToR('#fff') + ", " + hexToG('#fff') + ", " + hexToB('#fff') + ", " + 1.0 + ")",
-                "rgba(" + hexToR('#64f0ff') + ", " + hexToG('#64f0ff') + ", " + hexToB('#64f0ff') + ", " + 1.0 + ")",
-                "rgba(" + hexToR('#87e1ff') + ", " + hexToG('#87e1ff') + ", " + hexToB('#87e1ff') + ", " + 1.0 + ")",
-                "rgba(" + hexToR('#a0d0ff') + ", " + hexToG('#a0d0ff') + ", " + hexToB('#a0d0ff') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#b5c0ff') + ", " + hexToG('#b5c0ff') + ", " + hexToB('#b5c0ff') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#c6adff') + ", " + hexToG('#c6adff') + ", " + hexToB('#c6adff') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#d49bff') + ", " + hexToG('#d49bff') + ", " + hexToB('#d49bff') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#e185ff') + ", " + hexToG('#e185ff') + ", " + hexToB('#e185ff') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#ec6dff') + ", " + hexToG('#ec6dff') + ", " + hexToB('#ec6dff') + ", " + 0.5 + ")",
-                "rgba(" + hexToR('#ff1edb') + ", " + hexToG('#ff1edb') + ", " + hexToB('#ff1edb') + ", " + 0.5 + ")"
+                "rgba(" + hexToR('#ffffff') + ", " + hexToG('#ffffff') + ", " + hexToB('#ffffff') + ", " + 1.0 + ")",
+                "rgba(" + hexToR('#0084ff') + ", " + hexToG('#0084ff') + ", " + hexToB('#0084ff') + ", " + 0.5 + ")",
+                "rgba(" + hexToR('#00fff6') + ", " + hexToG('#00fff6') + ", " + hexToB('#00fff6') + ", " + 0.5 + ")",
+                "rgba(" + hexToR('#00d119') + ", " + hexToG('#00d119') + ", " + hexToB('#00d119') + ", " + 0.5 + ")",
+                "rgba(" + hexToR('#96ff00') + ", " + hexToG('#96ff00') + ", " + hexToB('#96ff00') + ", " + 0.5 + ")",
+                "rgba(" + hexToR('#eaff00') + ", " + hexToG('#eaff00') + ", " + hexToB('#eaff00') + ", " + 0.5 + ")",
+                "rgba(" + hexToR('#ff9c00') + ", " + hexToG('#ff9c00') + ", " + hexToB('#ff9c00') + ", " + 0.5 + ")",
+                "rgba(" + hexToR('#ff2400') + ", " + hexToG('#ff2400') + ", " + hexToB('#ff2400') + ", " + 0.5 + ")"
             ];
-            /*
-            var result = [];
-            for (var j = 225; j >= 100; j = j - step) {
-              result.push(asColorStyle(j, j, j, 1));
-            }
-            */
             result.indexFor = function(m) {  // map wind speed to a style
                 return Math.floor(Math.min(m, maxWind) / maxWind * (result.length - 1));
             };
