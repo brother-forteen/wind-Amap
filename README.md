@@ -40,3 +40,11 @@ All the credit for this work goes to [@cambecc](https://github.com/cambecc) for 
 This project inherits an MIT license from [cambecc/earth](https://github.com/cambecc/earth) because 95% of the code here was copied from that project.
 
 A copy of the license is available in the repository's [license.txt]( https://raw.github.com/Esri/wind-js/master/license.txt) file.
+
+## 添加
+
+以上为原作者所写，使用的是ArcGIS，我在此基础上修改了用高德地图缩写的风场，gaodeMap.html
+
+## 致谢
+
+[Esri](https://github.com/Esri/wind-js)
